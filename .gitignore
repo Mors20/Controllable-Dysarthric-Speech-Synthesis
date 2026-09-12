@@ -1,0 +1,58 @@
+# Model weights and checkpoints
+artifacts/
+checkpoints/
+finetune_models/
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+*.bin
+*.t7
+
+# Corpora, generated audio, features and intermediate outputs
+data/
+outputs/
+samples*/
+logs/
+runs/
+*.wav
+*.flac
+*.mp3
+*.npy
+*.npz
+*.jsonl
+*.log
+
+# Local audit/download material
+server_snapshot/
+server_audit/
+tmp/
+*_bundle.tar.gz
+
+# Python/editor/system files
+__pycache__/
+.ipynb_checkpoints/
+*.py[cod]
+.venv/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Upstream IndexTTS2/UI components outside this training path
+indextts/accel/
+indextts/s2mel/
+indextts/cli.py
+indextts/cli_v2.py
+indextts/infer.py
+indextts/infer_v2.py
+indextts/gpt/model_v2.py
+indextts/utils/maskgct/
+indextts/utils/maskgct_utils.py
+indextts/utils/examples_downloader.py
+indextts/utils/model_download.py
+indextts/utils/network_detection.py
+indextts/utils/presets.py
+indextts/utils/text_utils.py
+indextts/utils/utils.py
+indextts/utils/webui_utils.py
