@@ -2,6 +2,8 @@
 
 This repository contains the data generation, training, and inference code for controllable dysarthric speech synthesis.
 
+**Project page:** [Audio samples and system overview](https://mors20.github.io/Controllable-Dysarthric-Speech-Synthesis/)
+
 ## Requirements
 
 Use Linux, Python 3.10, and an NVIDIA GPU. Prepare:
