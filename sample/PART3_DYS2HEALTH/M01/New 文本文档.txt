@@ -1,0 +1,3 @@
+trait
+Grandfather likes to be modern in his language
+A long flowing beard clings to his chin

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="Hugo 0.88.1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+	<link rel="stylesheet" href="css/custom.css">
+	<link rel="stylesheet" href="css/normalize.css">
+
+	<title>Controllable Dysarthric Speech Synthesis</title>
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+
+<body data-new-gr-c-s-check-loaded="14.1091.0" data-gr-ext-installed="">
+
+<div class="container" >
+<header role="banner">
+</header>
+<main role="main">
+<article itemscope itemtype="https://schema.org/BlogPosting">
+
+<div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+	<div class="text-center">
+	<h2>Controllable Dysarthric Speech Synthesis with Patient-Specific Conditioning for Speaker-Diverse ASR Augmentation</h2>
+	<p>
+		<a class="btn btn-outline-dark" href="https://github.com/Mors20/Controllable-Dysarthric-Speech-Synthesis" target="_blank" rel="noopener noreferrer">Code</a>
+	</p>
+	</div>
+	<p style="text-align: justify;"><b>Abstract</b> Dysarthric speech recognition remains challenging because dysarthric speech is highly variable across speakers and only limited labeled training data are available. Although speech synthesis has been explored for ASR data augmentation, existing methods often couple speaker identity with dysarthric articulation, limiting the controllability of the generated data. We propose a controllable dysarthric speech synthesis framework for ASR data augmentation that uses separate prompt-derived timbre conditioning prefixes and learnable patient-specific pathology conditioning prefixes. Built on a pre-trained neural codec language model adapted with lightweight LoRA, the framework combines the two prefixes through additive conditioning. A dual-classifier objective with gradient reversal and VC-based counterfactual augmentation are used to promote factor separation between timbre-related and pathology-related information. This design supports pairing a learned patient-specific pathology condition with different target prompt speakers, including healthy speakers. Experiments on the TORGO dataset show that the generated speech can partially substitute for real dysarthric training data and provides effective speaker-diverse augmentation when combined with real data. Objective ASR evaluations, perceptual evaluations, factor-separation analysis, and phoneme-level error analysis provide evidence that the proposed conditioning strategy preserves target-speaker timbre while producing pathology-dependent patterns consistent with real dysarthric speech.</p>
+
+	<p>
+	<b>Contents</b>
+      <ul>
+        <li><a href="#Model Overview">Model Overview</a></li>
+        <li><a href="#Dysarthria Speech Synthesis">Dysarthric Speech Synthesis (Patient Timbre &times; Patient Pathology)</a></li>
+		<li><a href="#Healthy-to-Dysarthria Transformation">Cross-Speaker Pathology Rendering (Healthy Timbre &times; Patient Pathology)</a></li>
+		<li><a href="#Dysarthria-to-Healthy Transformation">Dysarthric-to-Healthy Reconstruction (Patient Timbre &times; Healthy Condition)</a></li>
+
+      </ul>
+	</p>
+
+	<p><b>This page is for research demonstration purposes only.</b></p>
+
+	
+</div>
+
+
+<div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">		
+	<h2 id="Model Overview" style="text-align: center;">Model Overview</h2>
+	<body>
+	<p style="text-align: center;">
+		<img src="fig/model.png" style="width:100%; max-width:1180px; height:auto;">
+	</p>
+	</body>
+		<p style="text-align: center;" >
+			<b>Figure 1.</b> Overview of the proposed controllable dysarthric speech synthesis framework.
+		</p>
+</div>
+
+
+<div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+	<h2 id="Dysarthria Speech Synthesis" class="text-center">Dysarthric Speech Synthesis <span style="font-weight:400;font-size:0.62em;color:#666;">(Patient Timbre &times; Patient Pathology)</span></h2>
+  
+	<div class="table-responsive pt-3">
+	  <table class="table table-hover align-middle">
+		<thead>
+		  <tr>
+			<th style="text-align:center;">Real</th>
+			<th style="text-align:center;">Synthesis</th>
+			<th style="text-align:center;">Reference Text</th>
+		  </tr>
+		</thead>
+  
+		<tbody>
+		  <!-- ===================== F01 ===================== -->
+		  <tr class="table-secondary">
+			<td colspan="3" style="text-align:left;"><b>F01</b></td>
+		  </tr>
+  
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/F01/0020.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/F01/0020_dys1.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>Usually minus several buttons.</span></td>
+		  </tr>
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/F01/0093.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/F01/0093_dys1.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>A long flowing beard clings to his chin.</span></td>
+		  </tr>
+  
+		  <!-- ===================== M01 ===================== -->
+		  <tr class="table-secondary">
+			<td colspan="3" style="text-align:left;"><b>M01</b></td>
+		  </tr>
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/M01/0005.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/M01/0005_dys2.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>When he speaks his voice is just a bit cracked and quivers a trifle.</span></td>
+		  </tr>
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/M01/0009.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/M01/0009_dys2.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>Grandfather likes to be modern in his language.</span></td>
+		  </tr>
+
+		  		  <!-- ===================== M02 ===================== -->
+		  <tr class="table-secondary">
+			<td colspan="3" style="text-align:left;"><b>M02</b></td>
+		  </tr>
+  
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/M02/0055.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/M02/0055_dys3.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>She had your dark suit in greasy wash water all year.</span></td>
+		  </tr>
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/M02/0066.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART1_DYSSYN/M02/0066_dys3.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>Yet he still thinks as swiftly as ever.</span></td>
+		  </tr>
+
+		  		  <!-- ===================== M04 ===================== -->
+					<tr class="table-secondary">
+						<td colspan="3" style="text-align:left;"><b>M04</b></td>
+					  </tr>
+			  
+			  
+					  <tr>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART1_DYSSYN/M04/0036.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART1_DYSSYN/M04/0036_dys4.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td><span>The quick brown fox jumps over the lazy dog.</span></td>
+					  </tr>
+			  
+					  <tr>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART1_DYSSYN/M04/0053.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART1_DYSSYN/M04/0053_dys4.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td><span>I can read.</span></td>
+					  </tr>
+
+		  		  <!-- ===================== M05 ===================== -->
+					<tr class="table-secondary">
+						<td colspan="3" style="text-align:left;"><b>M05</b></td>
+					  </tr>
+			  
+			  
+					  <tr>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART1_DYSSYN/M05/0009.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART1_DYSSYN/M05/0009_dys5.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td><span>Twice each day he plays skillfully and with zest upon our small organ.</span></td>
+					  </tr>
+			  
+					  <tr>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART1_DYSSYN/M05/0078.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART1_DYSSYN/M05/0078_dys5.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td><span>Don't ask me to carry an oily rag like that.</span></td>
+					  </tr>
+
+
+		</tbody>
+	  </table>
+	</div>
+  </div>
+
+  <div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+	<h2 id="Healthy-to-Dysarthria Transformation" class="text-center">Cross-Speaker Pathology Rendering <span style="font-weight:400;font-size:0.62em;color:#666;">(Healthy Timbre &times; Patient Pathology)</span></h2>
+  
+	<div class="table-responsive pt-3">
+	  <table class="table table-borderless align-middle">
+  
+		<tbody>
+		  <!-- ===================== FC01 ===================== -->
+		  <tr class="table-secondary">
+			<td colspan="5" style="text-align:left;"><b>FC01</b></td>
+		  </tr>
+  
+		  <tr>
+			<td colspan="5" style="text-align:center;">
+			  <div style="margin-bottom: 8px;">
+				<b>Original Speech</b>
+			  </div>
+		  
+			  <audio controls style="width: 260px; margin-bottom: 6px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0015.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+		  
+			  <div style="font-size: 0.95rem; color: #555;">
+				<b>Reference Text:</b>
+				<span>
+					When he speaks his voice is just a bit cracked and quivers a trifle
+				</span>
+			  </div>
+			</td>
+		  </tr>
+  
+		  <!-- Prototypes k = 1 ~ 5 -->
+		  <tr>
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 1</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0015_dys1.wav" type="audio/wav">
+			  </audio>
+			</td>
+  
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 2</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0015_dys2.wav" type="audio/wav">
+			  </audio>
+			</td>
+  
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 3</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0015_dys3.wav" type="audio/wav">
+			  </audio>
+			</td>
+  
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 4</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0015_dys4.wav" type="audio/wav">
+			  </audio>
+			</td>
+  
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 5</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0015_dys5.wav" type="audio/wav">
+			  </audio>
+			</td>
+		  </tr>
+  
+
+		  <tr>
+			<td colspan="5" style="text-align:center;">
+			  <div style="margin-bottom: 8px;">
+				<b>Original Speech</b>
+			  </div>
+		  
+			  <audio controls style="width: 260px; margin-bottom: 6px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0036.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+		  
+			  <div style="font-size: 0.95rem; color: #555;">
+				<b>Reference Text:</b>
+				<span>
+					Don't ask me to carry an oily rag like that
+				</span>
+			  </div>
+			</td>
+		  </tr>
+  
+		  <!-- Prototypes k = 1 ~ 5 -->
+		  <tr>
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 1</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0036_dys1.wav" type="audio/wav">
+			  </audio>
+			</td>
+  
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 2</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0036_dys2.wav" type="audio/wav">
+			  </audio>
+			</td>
+  
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 3</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0036_dys3.wav" type="audio/wav">
+			  </audio>
+			</td>
+  
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 4</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0036_dys4.wav" type="audio/wav">
+			  </audio>
+			</td>
+  
+			<td style="text-align:center;">
+			  <div>Pathology <i>k</i> = 5</div>
+			  <audio controls style="width: 180px;">
+				<source src="sample/PART2_HEALTH2DYS/FC01/0036_dys5.wav" type="audio/wav">
+			  </audio>
+			</td>
+		  </tr>
+
+		  <tbody>
+			<!-- ===================== MC02 ===================== -->
+			<tr class="table-secondary">
+			  <td colspan="5" style="text-align:left;"><b>MC02</b></td>
+			</tr>
+	
+			<tr>
+			  <td colspan="5" style="text-align:center;">
+				<div style="margin-bottom: 8px;">
+				  <b>Original Speech</b>
+				</div>
+			
+				<audio controls style="width: 260px; margin-bottom: 6px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0071.wav" type="audio/wav">
+				  Your browser does not support the audio element.
+				</audio>
+			
+				<div style="font-size: 0.95rem; color: #555;">
+				  <b>Reference Text:</b>
+				  <span>
+					Usually minus several buttons 
+				  </span>
+				</div>
+			  </td>
+			</tr>
+	
+			<!-- Prototypes k = 1 ~ 5 -->
+			<tr>
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 1</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0071_dys1.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 2</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0071_dys2.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 3</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0071_dys3.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 4</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0071_dys4.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 5</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0071_dys5.wav" type="audio/wav">
+				</audio>
+			  </td>
+			</tr>
+	
+  
+			<tr>
+			  <td colspan="5" style="text-align:center;">
+				<div style="margin-bottom: 8px;">
+				  <b>Original Speech</b>
+				</div>
+			
+				<audio controls style="width: 260px; margin-bottom: 6px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0082.wav" type="audio/wav">
+				  Your browser does not support the audio element.
+				</audio>
+			
+				<div style="font-size: 0.95rem; color: #555;">
+				  <b>Reference Text:</b>
+				  <span>
+					You wished to know all about my grandfather
+				  </span>
+				</div>
+			  </td>
+			</tr>
+	
+			<!-- Prototypes k = 1 ~ 5 -->
+			<tr>
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 1</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0082_dys1.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 2</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0082_dys2.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 3</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0082_dys3.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 4</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0082_dys4.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 5</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC02/0082_dys5.wav" type="audio/wav">
+				</audio>
+			  </td>
+			</tr>
+
+						<!-- ===================== MC04 ===================== -->
+			<tr class="table-secondary">
+			  <td colspan="5" style="text-align:left;"><b>MC04</b></td>
+			</tr>
+	
+			<tr>
+			  <td colspan="5" style="text-align:center;">
+				<div style="margin-bottom: 8px;">
+				  <b>Original Speech</b>
+				</div>
+			
+				<audio controls style="width: 260px; margin-bottom: 6px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0033.wav" type="audio/wav">
+				  Your browser does not support the audio element.
+				</audio>
+			
+				<div style="font-size: 0.95rem; color: #555;">
+				  <b>Reference Text:</b>
+				  <span>
+					We have often urged him to walk more and smoke less 
+				  </span>
+				</div>
+			  </td>
+			</tr>
+	
+			<!-- Prototypes k = 1 ~ 5 -->
+			<tr>
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 1</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0033_dys1.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 2</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0033_dys2.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 3</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0033_dys3.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 4</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0033_dys4.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 5</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0033_dys5.wav" type="audio/wav">
+				</audio>
+			  </td>
+			</tr>
+	
+  
+			<tr>
+			  <td colspan="5" style="text-align:center;">
+				<div style="margin-bottom: 8px;">
+				  <b>Original Speech</b>
+				</div>
+			
+				<audio controls style="width: 260px; margin-bottom: 6px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0072.wav" type="audio/wav">
+				  Your browser does not support the audio element.
+				</audio>
+			
+				<div style="font-size: 0.95rem; color: #555;">
+				  <b>Reference Text:</b>
+				  <span>
+					he dresses himself in an ancient black frock coat 
+				  </span>
+				</div>
+			  </td>
+			</tr>
+	
+			<!-- Prototypes k = 1 ~ 5 -->
+			<tr>
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 1</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0072_dys1.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 2</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0072_dys2.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 3</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0072_dys3.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 4</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0072_dys4.wav" type="audio/wav">
+				</audio>
+			  </td>
+	
+			  <td style="text-align:center;">
+				<div>Pathology <i>k</i> = 5</div>
+				<audio controls style="width: 180px;">
+				  <source src="sample/PART2_HEALTH2DYS/MC04/0072_dys5.wav" type="audio/wav">
+				</audio>
+			  </td>
+			</tr>
+  
+		</tbody>
+	  </table>
+	</div>
+  </div>
+
+  <div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+	<h2 id="Dysarthria-to-Healthy Transformation" class="text-center">Dysarthric-to-Healthy Reconstruction <span style="font-weight:400;font-size:0.62em;color:#666;">(Patient Timbre &times; Healthy Condition)</span></h2>
+  
+	<div class="table-responsive pt-3">
+	  <table class="table table-hover align-middle">
+		<thead>
+		  <tr>
+			<th style="text-align:center;">Original</th>
+			<th style="text-align:center;">Transformed</th>
+			<th style="text-align:center;">Reference Text</th>
+		  </tr>
+		</thead>
+  
+		<tbody>
+		  <!-- ===================== F01 ===================== -->
+		  <tr class="table-secondary">
+			<td colspan="3" style="text-align:left;"><b>F01</b></td>
+		  </tr>
+  
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/F01/0006.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/F01/0006_CONVERTED.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>Stick.</span></td>
+		  </tr>
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/F01/0008.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/F01/0008_CONVERTED.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>Except in the winter when the ooze or snow or ice prevents.</span></td>
+		  </tr>
+
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/F01/0035.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/F01/0035_CONVERTED.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>Giving those who observe him a pronounced feeling of the utmost respect.</span></td>
+		  </tr>
+  
+		  <!-- ===================== M01 ===================== -->
+		  <tr class="table-secondary">
+			<td colspan="3" style="text-align:left;"><b>M01</b></td>
+		  </tr>
+  
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/M01/0006.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/M01/0006_CONVERTED.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>Trait.</span></td>
+		  </tr>
+  
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/M01/0009.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/M01/0009_CONVERTED.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>Grandfather likes to be modern in his language.</span></td>
+		  </tr>
+
+		  <tr>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/M01/0012.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td style="text-align:center;">
+			  <audio controls style="width: 220px;">
+				<source src="sample/PART3_DYS2HEALTH/M01/0012_CONVERTED.wav" type="audio/wav">
+				Your browser does not support the audio element.
+			  </audio>
+			</td>
+			<td><span>A long flowing beard clings to his chin.</span></td>
+		  </tr>
+
+		  		  <!-- ===================== M04 ===================== -->
+					<tr class="table-secondary">
+						<td colspan="3" style="text-align:left;"><b>M04</b></td>
+					  </tr>
+			  
+			  
+					  <tr>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART3_DYS2HEALTH/M04/0005.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART3_DYS2HEALTH/M04/0005_CONVERTED.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td><span>Trouble.</span></td>
+					  </tr>
+			  
+					  <tr>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART3_DYS2HEALTH/M04/0012.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART3_DYS2HEALTH/M04/0012_CONVERTED.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td><span>Twice each day he plays skillfully and with zest upon our small organ.</span></td>
+					  </tr>
+			
+					  <tr>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART3_DYS2HEALTH/M04/0020.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td style="text-align:center;">
+						  <audio controls style="width: 220px;">
+							<source src="sample/PART3_DYS2HEALTH/M04/0020_CONVERTED.wav" type="audio/wav">
+							Your browser does not support the audio element.
+						  </audio>
+						</td>
+						<td><span>Well he is nearly ninetythree years old.</span></td>
+					  </tr>
+
+		</tbody>
+	  </table>
+	</div>
+  </div>
+
+
+
+</article>
+</main>
+</div>
+
+</body>
+</html>
