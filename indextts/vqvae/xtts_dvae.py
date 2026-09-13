@@ -382,7 +382,7 @@ class DiscreteVAE(nn.Module):
         return recon_loss, ssim_loss, commitment_loss, out
 
     def log_codes(self, codes):
-        # This is so we can debug the distribution of codes being learned.
+        # Track codebook usage statistics during training.
         if self.record_codes and self.internal_step % 10 == 0:
             codes = codes.flatten()
             l = codes.shape[0]

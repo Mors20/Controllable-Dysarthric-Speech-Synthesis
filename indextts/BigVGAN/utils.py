@@ -4,44 +4,11 @@
 import glob
 import os
 
-import matplotlib
-import matplotlib.pylab as plt
 import torch
 from scipy.io.wavfile import write
 from torch.nn.utils import weight_norm
 
-matplotlib.use("Agg")
-
 MAX_WAV_VALUE = 32768.0
-
-
-def plot_spectrogram(spectrogram):
-    fig, ax = plt.subplots(figsize=(10, 2))
-    im = ax.imshow(spectrogram, aspect="auto", origin="lower", interpolation="none")
-    plt.colorbar(im, ax=ax)
-
-    fig.canvas.draw()
-    plt.close()
-
-    return fig
-
-
-def plot_spectrogram_clipped(spectrogram, clip_max=2.0):
-    fig, ax = plt.subplots(figsize=(10, 2))
-    im = ax.imshow(
-        spectrogram,
-        aspect="auto",
-        origin="lower",
-        interpolation="none",
-        vmin=1e-6,
-        vmax=clip_max,
-    )
-    plt.colorbar(im, ax=ax)
-
-    fig.canvas.draw()
-    plt.close()
-
-    return fig
 
 
 def init_weights(m, mean=0.0, std=0.01):

@@ -5,9 +5,6 @@ import re
 import torch
 import torchaudio
 
-MATPLOTLIB_FLAG = False
-
-
 def load_audio(audiopath, sampling_rate):
     audio, sr = torchaudio.load(audiopath)
     # print(f"wave shape: {audio.shape}, sample_rate: {sr}")

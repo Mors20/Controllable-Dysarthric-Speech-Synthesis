@@ -69,8 +69,7 @@ class BASECFM(torch.nn.Module, ABC):
         """
         t, _, _ = t_span[0], t_span[-1], t_span[1] - t_span[0]
 
-        # I am storing this because I can later plot it by putting a debugger here and saving it to a file
-        # Or in future might add like a return_all_steps flag
+        # Store the Euler states and return the final estimate.
         sol = []
         # apply prompt
         prompt_len = prompt.size(-1)
